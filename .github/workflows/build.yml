@@ -24,8 +24,8 @@ jobs:
         uv sync
     - name: Generate OpenAPI Spec
       run: |
-        uv run main.py main:app --app-dir packages/workflow-runner-sentence-transformers --out workflow-runner-sentence-transformers.json
-        uv run openapi-python-client generate --path .\workflow-runner-sentence-transformers.json
+        uv run main.py main:app --app-dir packages/workflow-runner-sentence-transformers --out ./workflow-runner-sentence-transformers.json
+        uv run openapi-python-client generate --path workflow-runner-sentence-transformers.json
 
 #    - name: Generate Client
 #      run: |
