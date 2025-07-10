@@ -31,4 +31,6 @@ jobs:
         TWINE_USERNAME: __token__  # Use the token authentication
         TWINE_PASSWORD: ${{ secrets.PYPI_PUB_TOKEN }}
       run: |
-        uv run twine upload ./workflow-runner-sentence-transformers-client/dist/*
+        cd ./workflow-runner-sentence-transformers-client
+        ub build
+        uv run twine upload dist/*
