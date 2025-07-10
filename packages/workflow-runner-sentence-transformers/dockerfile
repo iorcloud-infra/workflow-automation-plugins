@@ -1,0 +1,11 @@
+FROM mayank31313/workflow-runner
+LABEL authors="mayank31313"
+
+WORKDIR /workers
+COPY ./pyproject.toml ./
+RUN uv venv && uv sync
+
+COPY entrypoint.sh /workers/entrypoint.sh
+COPY serve.py /workers/serve.py
+
+ENTRYPOINT ["/workers/entrypoint.sh"]
