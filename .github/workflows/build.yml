@@ -22,3 +22,6 @@ jobs:
     - name: Sync Dependencies with UV
       run: |
         uv sync
+    - name: Generate OpenAPI Spec
+      run: |
+        uv run main.py main:app --app-dir packages/workflow-runner-sentence-transformers --out workflow-runner-sentence-transformers.yaml

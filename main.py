@@ -4,7 +4,7 @@ import sys
 import yaml
 from uvicorn.importer import import_from_string
 
-parser = argparse.ArgumentParser(prog="extract-openapi.py")
+parser = argparse.ArgumentParser(prog="main.py")
 parser.add_argument("app",       help='App import string. Eg. "serve:app"', default="serve:app")
 parser.add_argument("--app-dir", help="Directory containing the app", default=None)
 parser.add_argument("--out",     help="Output file ending in .json or .yaml", default="openapi.yaml")
