@@ -28,7 +28,7 @@ jobs:
     - name: Generate Client
       run: |
         docker run --rm \
-          -v ${pwd}:/local openapitools/openapi-generator-cli generate \
+          -v ./:/local openapitools/openapi-generator-cli generate \
           -i /local/workflow-runner-sentence-transformers.yaml \
           -g python \
           -o /local/out/python \
