@@ -24,28 +24,24 @@ jobs:
         uv sync
     - name: Generate OpenAPI Spec
       run: |
-        uv run main.py main:app --app-dir packages/workflow-runner-sentence-transformers --out workflow-runner-sentence-transformers.yaml
-    - name: Generate Client
-      run: |
-        docker run --rm \
-          -v ./:/local openapitools/openapi-generator-cli generate \
-          -i /local/workflow-runner-sentence-transformers.yaml \
-          -g python \
-          -o /local/out/python \
-          --additional-properties=packageName=workflow-automation-sentence-transformers
+        uv run main.py main:app --app-dir packages/workflow-runner-sentence-transformers --out workflow-runner-sentence-transformers.json
+        uv run openapi-python-client generate --path .\workflow-runner-sentence-transformers.json
 
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
+#    - name: Generate Client
+#      run: |
+#        docker run --rm \
+#          -v ./:/local openapitools/openapi-generator-cli generate \
+#          -i /local/workflow-runner-sentence-transformers.yaml \
+#          -g python \
+#          -o /local/out/python \
+#          --additional-properties=packageName=workflow-automation-sentence-transformers
     - name: Install dependencies
       run: |
-        cd out/python
-        pip3 install setuptools wheel twine
-        python3 setup.py sdist bdist_wheel
+        uv add twine
+        cd workflow-runner-sentence-transformers-client
     - name: Publish to PyPI
       env:
         TWINE_USERNAME: __token__  # Use the token authentication
         TWINE_PASSWORD: ${{ secrets.PYPI_PUB_TOKEN }}
       run: |
-        twine upload dist/*
+        uv run twine upload dist/*
