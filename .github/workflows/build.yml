@@ -35,7 +35,7 @@ jobs:
           --additional-properties=packageName=workflow-automation-sentence-transformers
     - name: Install dependencies
       run: |
-        cd /out/python
+        cd out/python
         uv pip install setuptools wheel twine
         uv python setup.py sdist bdist_wheel
     - name: Publish to PyPI
