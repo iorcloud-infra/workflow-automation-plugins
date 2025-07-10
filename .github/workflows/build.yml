@@ -26,22 +26,9 @@ jobs:
       run: |
         uv run main.py main:app --app-dir packages/workflow-runner-sentence-transformers --out ./workflow-runner-sentence-transformers.json
         uv run openapi-python-client generate --path workflow-runner-sentence-transformers.json
-
-#    - name: Generate Client
-#      run: |
-#        docker run --rm \
-#          -v ./:/local openapitools/openapi-generator-cli generate \
-#          -i /local/workflow-runner-sentence-transformers.yaml \
-#          -g python \
-#          -o /local/out/python \
-#          --additional-properties=packageName=workflow-automation-sentence-transformers
-    - name: Install dependencies
-      run: |
-        uv add twine
-        cd workflow-runner-sentence-transformers-client
     - name: Publish to PyPI
       env:
         TWINE_USERNAME: __token__  # Use the token authentication
         TWINE_PASSWORD: ${{ secrets.PYPI_PUB_TOKEN }}
       run: |
-        uv run twine upload dist/*
+        uv run twine upload ./workflow-runner-sentence-transformers-client/dist/*
