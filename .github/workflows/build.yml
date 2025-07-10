@@ -27,9 +27,6 @@ jobs:
         uv run main.py main:app --app-dir packages/workflow-runner-sentence-transformers --out ./workflow-runner-sentence-transformers.json
         uv run openapi-python-client generate --path workflow-runner-sentence-transformers.json
     - name: Publish to PyPI
-      env:
-        TWINE_USERNAME: __token__  # Use the token authentication
-        TWINE_PASSWORD: ${{ secrets.PYPI_PUB_TOKEN }}
       run: |
         cd ./workflow-runner-sentence-transformers-client
         uv build
@@ -70,6 +67,9 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install twine
       - name: Publish release distributions
+        env:
+          TWINE_USERNAME: __token__  # Use the token authentication
+          TWINE_PASSWORD: ${{ secrets.PYPI_PUB_TOKEN }}
         run: |
           twine upload dist/*
 
