@@ -33,4 +33,4 @@ jobs:
       run: |
         cd ./workflow-runner-sentence-transformers-client
         uv build
-        uv run twine upload dist/*
+#        uv run twine upload dist/*
