@@ -6,6 +6,6 @@ COPY ./pyproject.toml ./
 RUN uv venv && uv sync
 
 COPY entrypoint.sh /workers/entrypoint.sh
-COPY serve.py /workers/serve.py
+COPY main.py /workers/main.py
 
 ENTRYPOINT ["/workers/entrypoint.sh"]
