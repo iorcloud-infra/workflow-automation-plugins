@@ -21,7 +21,7 @@ jobs:
       uses: astral-sh/setup-uv@v6
     - name: Sync Dependencies with UV
       run: |
-        uv sync
+        uv sync --all-packages
     - name: Generate OpenAPI Spec
       run: |
         uv run main.py main:app --app-dir packages/workflow-runner-sentence-transformers --out ./workflow-runner-sentence-transformers.json
