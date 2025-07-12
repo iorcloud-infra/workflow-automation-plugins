@@ -1,8 +1,11 @@
 services:
   sentence-transformers:
-    image: "mayank31313/mayank31313/workflow-runner:sentence-transformers"
+    image: "mayank31313/workflow-runner:sentence-transformers"
     build:
       context: packages/workflow-runner-sentence-transformers
       dockerfile: dockerfile
-    ports:
-      - "8080:8000"
+  crawler:
+    image: "mayank31313/workflow-runner:crawler"
+    build:
+      context: packages/crawler
+      dockerfile: dockerfile

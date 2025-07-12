@@ -1,4 +1,3 @@
-from contextlib import asynccontextmanager
 from ipaddress import IPv4Address
 
 from cndi.annotations import Autowired
@@ -21,7 +20,7 @@ def get_all_ips():
 
 
 app = FastAPI(
-    title="Workflow Runner Sentence Transformers",
+    title="Crawl4AI",
     version="0.1.1",
     license_info={
         "name": "Apache 2.0",
