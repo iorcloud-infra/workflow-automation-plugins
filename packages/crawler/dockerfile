@@ -7,10 +7,10 @@ RUN apt-get update
 RUN pip3 install uv
 RUN uv venv && uv sync
 RUN playwright install
+
 COPY alembic.ini /workers
 COPY alembic /workers/alembic
 COPY entrypoint.sh /workers/entrypoint.sh
 COPY main.py /workers/main.py
-COPY resources /workers/resources
 
 ENTRYPOINT ["/workers/entrypoint.sh"]
