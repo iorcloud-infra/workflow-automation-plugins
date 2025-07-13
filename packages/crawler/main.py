@@ -2,6 +2,7 @@ import asyncio
 import ipaddress
 import os
 import socket
+from contextlib import asynccontextmanager
 from ipaddress import IPv4Address
 from uuid import UUID
 
@@ -30,6 +31,11 @@ def get_all_ips():
             ips.append(addr[4][0])
     return list(set(ips))
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+
+
+    yield
 
 app = FastAPI(
     title="Crawl4AI",
@@ -37,7 +43,8 @@ app = FastAPI(
     license_info={
         "name": "Apache 2.0",
         "identifier": "MIT",
-    }
+    },
+    lifespan=lifespan
 )
 
 class CrawlRequest(BaseModel):
@@ -59,10 +66,17 @@ async def get_task(task_id: str, session: SessionDep):
     task = session.get(CrawlTask, UUID(task_id))
     return dict(task)
 
-port = int(os.environ.get("PORT"))
-host_base_url = os.environ['HOST_SERVER_BASE_URL']
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app_initializer = AppInitializer()
+    app_initializer.run()
+    yield
+
+
 
 def sync_ip(callEvent, eventObject):
+    port = int(os.environ.get("PORT"))
+    host_base_url = os.environ['HOST_SERVER_BASE_URL']
     requests.post(f"{host_base_url}/workers/{os.environ['JOB_ID']}/sync_ip", json={
         "hosts": get_all_ips(),
         "port": port
@@ -114,5 +128,3 @@ def setEventHandler(event_handler: EventHandler):
     event_handler.registerEvent(sync_event)
     event_handler.registerEvent(crawl_event)
 
-app_initializer = AppInitializer()
-app_initializer.run()

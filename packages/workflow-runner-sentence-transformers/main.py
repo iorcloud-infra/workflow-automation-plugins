@@ -19,6 +19,12 @@ def get_all_ips():
             ips.append(addr[4][0])
     return list(set(ips))
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app_initializer = AppInitializer()
+    app_initializer.run()
+
+    yield
 
 app = FastAPI(
     title="Workflow Runner Sentence Transformers",
@@ -26,7 +32,8 @@ app = FastAPI(
     license_info={
         "name": "Apache 2.0",
         "identifier": "MIT",
-    }
+    },
+    lifespan=lifespan
 )
 
 class RetriverRequest(BaseModel):
@@ -53,10 +60,12 @@ async def root(request: RetriverRequest) -> dict:
     return dict(documents=documents)
 
 
-port = int(os.environ.get("PORT"))
-host_base_url = os.environ['HOST_SERVER_BASE_URL']
+
+
 
 def sync_ip(callEvent, eventObject):
+    host_base_url = os.environ['HOST_SERVER_BASE_URL']
+    port = int(os.environ.get("PORT"))
     requests.post(f"{host_base_url}/workers/{os.environ['JOB_ID']}/sync_ip", json={
         "hosts": get_all_ips(),
         "port": port
@@ -71,5 +80,3 @@ def setEventHandler(event_handler: EventHandler):
 
     event_handler.registerEvent(event)
 
-app_initializer = AppInitializer()
-app_initializer.run()
