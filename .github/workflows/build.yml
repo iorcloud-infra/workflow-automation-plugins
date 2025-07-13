@@ -14,6 +14,9 @@ permissions:
 
 jobs:
   build:
+    strategy:
+      matrix:
+        path: [ "workflow-runner-sentence-transformers", "crawler"]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -24,18 +27,18 @@ jobs:
         uv sync --all-packages
     - name: Generate OpenAPI Spec
       run: |
-        uv run main.py main:app --app-dir packages/workflow-runner-sentence-transformers --out ./workflow-runner-sentence-transformers.json
-        uv run openapi-python-client generate --path workflow-runner-sentence-transformers.json
+        uv run main.py main:app --app-dir packages/${{ matrix.path }} --out ./${{ matrix.path }}.json
+        uv run openapi-python-client generate --path ${{ matrix.path }}.json
     - name: Publish to PyPI
       run: |
-        cd ./workflow-runner-sentence-transformers-client
+        cd ./${{ matrix.path }}-client
         uv build
 #        twine upload dist/*
     - name: Upload distributions
       uses: actions/upload-artifact@v4
       with:
         name: release-dists
-        path: workflow-runner-sentence-transformers-client/dist/
+        path: ${{ matrix.path }}-client/dist/
 
   pypi-publish:
     runs-on: ubuntu-latest
