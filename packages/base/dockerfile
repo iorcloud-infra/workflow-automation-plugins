@@ -1,0 +1,8 @@
+FROM python:3.10-slim-bookworm
+LABEL authors="mayank31313"
+RUN apt-get update && apt install git -y
+WORKDIR /workers
+COPY ./pyproject.toml /workers
+
+RUN pip3 install uv
+RUN uv sync

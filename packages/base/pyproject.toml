@@ -1,5 +1,5 @@
 [project]
-name = "crawler"
+name = "base"
 version = "0.1.0"
 description = ""
 readme = "README.md"
@@ -10,8 +10,7 @@ dependencies = [
     "fastapi[standard]",
     "sqlmodel>=0.0.24",
     "crawl4ai",
-    "pika",
-    "websocket-client>=1.8.0",
+    "pika"
 ]
 [tool.uv.sources]
 cndi = { git = "https://github.com/mayank31313/python-dependency-injection.git" }

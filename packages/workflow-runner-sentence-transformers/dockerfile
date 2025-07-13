@@ -1,10 +1,8 @@
-FROM python
+FROM mayank31313/workflow-runner:base
 LABEL authors="mayank31313"
 
 WORKDIR /workers
 COPY ./pyproject.toml ./
-RUN apt-get update && apt install git
-RUN pip3 install uv
 RUN uv venv && uv sync
 
 COPY entrypoint.sh /workers/entrypoint.sh

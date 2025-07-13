@@ -1,11 +1,20 @@
 services:
+  base:
+    image: "mayank31313/workflow-runner:base"
+    build:
+      context: packages/base
+      dockerfile: dockerfile
   sentence-transformers:
     image: "mayank31313/workflow-runner:sentence-transformers"
     build:
       context: packages/workflow-runner-sentence-transformers
       dockerfile: dockerfile
+    depends_on:
+      - base
   crawler:
     image: "mayank31313/workflow-runner:crawler"
     build:
       context: packages/crawler
       dockerfile: dockerfile
+    depends_on:
+      - base

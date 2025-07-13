@@ -1,12 +1,9 @@
 import asyncio
-import ipaddress
 import os
-import socket
+
 from contextlib import asynccontextmanager
-from ipaddress import IPv4Address
 from uuid import UUID
 
-import requests
 from crawl4ai import BrowserConfig, AsyncWebCrawler
 from crawl4ai.models import CrawlResultContainer
 from sqlmodel import Session, select, desc
@@ -21,21 +18,13 @@ from pydantic import BaseModel, Field
 from app.db import getEngine
 from app.models import CrawlTask
 
-
-def get_all_ips():
-    ips = []
-    hostname = socket.gethostname()
-    for addr in socket.getaddrinfo(hostname, None):
-        ip = ipaddress.ip_address(addr[4][0])
-        if isinstance(ip, IPv4Address):
-            ips.append(addr[4][0])
-    return list(set(ips))
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
-
+    app_initializer = AppInitializer()
+    app_initializer.run()
     yield
+
+
 
 app = FastAPI(
     title="crawler",
@@ -49,6 +38,7 @@ app = FastAPI(
 
 class CrawlRequest(BaseModel):
     url: str = Field(description="URL to Crawl")
+
 @app.get("/name")
 async def get_name():
     return dict(name=os.environ['JOB_NAME'])
@@ -66,21 +56,6 @@ async def get_task(task_id: str, session: SessionDep):
     task = session.get(CrawlTask, UUID(task_id))
     return dict(task)
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    app_initializer = AppInitializer()
-    app_initializer.run()
-    yield
-
-
-
-def sync_ip(callEvent, eventObject):
-    port = int(os.environ.get("PORT"))
-    host_base_url = os.environ['HOST_SERVER_BASE_URL']
-    requests.post(f"{host_base_url}/workers/{os.environ['JOB_ID']}/sync_ip", json={
-        "hosts": get_all_ips(),
-        "port": port
-    }).json()
 
 
 async def crawl_next():
@@ -115,16 +90,10 @@ async def crawl_next():
 
 @Autowired()
 def setEventHandler(event_handler: EventHandler):
-    sync_event = Event(event_name="sync_event",  # Event Name
-                  event_handler=sync_ip,  # Set Handler Method
-                  event_object=dict(informativeData="hello"),  # Set Initial EventData
-                  event_invoker=lambda x: dict(trigger=True))
-
     crawl_event = Event(event_name="crawl_event",  # Event Name
                   event_handler=lambda x,y: asyncio.run(crawl_next()),  # Set Handler Method
                   event_object=dict(informativeData="hello"),  # Set Initial EventData
                   event_invoker=lambda x: dict(trigger=True))
 
-    event_handler.registerEvent(sync_event)
     event_handler.registerEvent(crawl_event)
 

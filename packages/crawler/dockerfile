@@ -1,16 +1,15 @@
-FROM python
+FROM mayank31313/workflow-runner:base
 LABEL authors="mayank31313"
 
 WORKDIR /workers
-COPY ./pyproject.toml ./
-RUN apt-get update
-RUN pip3 install uv
-RUN uv venv && uv sync
-RUN uv run playwright install
+COPY ./pyproject.toml /workers
+RUN uv sync
 
+
+COPY app /workers/app
 COPY alembic.ini /workers
 COPY alembic /workers/alembic
 COPY entrypoint.sh /workers/entrypoint.sh
 COPY main.py /workers/main.py
-
+COPY resources /workers/resources
 ENTRYPOINT ["/workers/entrypoint.sh"]

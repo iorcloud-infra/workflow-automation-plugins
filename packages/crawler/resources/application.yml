@@ -1,6 +1,5 @@
 rcn.events:
   enable: True
-  waittime: 10
 management:
   context:
     thread:
