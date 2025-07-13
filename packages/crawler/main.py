@@ -1,13 +1,25 @@
+import asyncio
+import ipaddress
+import os
+import socket
 from ipaddress import IPv4Address
+from uuid import UUID
 
+import requests
+from crawl4ai import BrowserConfig, AsyncWebCrawler
+from crawl4ai.models import CrawlResultContainer
+from sqlmodel import Session, select, desc
+
+from app.models import SessionDep
 from cndi.annotations import Autowired
-from cndi.events import EventHandler, Event
+from cndi.events import Event, EventHandler
 from cndi.initializers import AppInitializer
 from fastapi import FastAPI
-from langchain_elasticsearch import ElasticsearchStore
-from langchain_huggingface import HuggingFaceEmbeddings
 from pydantic import BaseModel, Field
-import socket, requests, ipaddress, os
+
+from app.db import getEngine
+from app.models import CrawlTask
+
 
 def get_all_ips():
     ips = []
@@ -28,29 +40,24 @@ app = FastAPI(
     }
 )
 
-class RetriverRequest(BaseModel):
-    base_url: str = Field(description="Elasticsearch URL", default="http://localhost:9200")
-    api_key: str
-    index_name: str = Field(description="Elasticsearch index name", default="default")
-    query: str = Field(description="Query to search for")
-    embedding_model: str = Field(default="sentence-transformers/all-MiniLM-L6-v2")
-
+class CrawlRequest(BaseModel):
+    url: str = Field(description="URL to Crawl")
 @app.get("/name")
 async def get_name():
     return dict(name=os.environ['JOB_NAME'])
 
-@app.get("/retrieve")
-async def root(request: RetriverRequest) -> dict:
-    embeddings = HuggingFaceEmbeddings(model_name=request.embedding_model)
-    retriever = ElasticsearchStore(es_url=request.base_url,
-                                   index_name=request.index_name,
-                                   embedding=embeddings,
-                                   es_api_key=request.api_key
-                                   )
+@app.post("/crawl")
+async def crawl(request: CrawlRequest, session: SessionDep) -> dict:
+    crawl_task = CrawlTask(url=request.url)
+    session.add(crawl_task)
+    session.commit()
+    session.refresh(crawl_task)
+    return dict(task_id=crawl_task.id)
 
-    documents = await retriever.asearch(query = request.query)
-    return dict(documents=documents)
-
+@app.get("/task/{task_id}")
+async def get_task(task_id: str, session: SessionDep):
+    task = session.get(CrawlTask, UUID(task_id))
+    return dict(task)
 
 port = int(os.environ.get("PORT"))
 host_base_url = os.environ['HOST_SERVER_BASE_URL']
@@ -61,14 +68,51 @@ def sync_ip(callEvent, eventObject):
         "port": port
     }).json()
 
+
+async def crawl_next():
+    browser_config = BrowserConfig(
+        headless=True,
+        verbose=True,
+    )
+
+    with (Session(getEngine()) as session):
+        query = (select(CrawlTask).where(CrawlTask.status == "PENDING")
+                        .order_by(desc(CrawlTask.priority))
+                        .limit(1))
+        for task in session.exec(query).all():
+            task.status = "STARTED"
+            session.merge(task)
+            session.commit()
+
+            try:
+                async with AsyncWebCrawler(config=browser_config) as crawler:
+                    result: CrawlResultContainer = await crawler.arun(
+                        url=task.url,
+                    )
+                    task.result = result.markdown
+                    task.status = "COMPLETED"
+
+                session.merge(task)
+            except Exception:
+                task.status = "ERROR"
+                session.merge(task)
+            session.commit()
+
+
 @Autowired()
 def setEventHandler(event_handler: EventHandler):
-    event = Event(event_name="testing_event",  # Event Name
+    sync_event = Event(event_name="sync_event",  # Event Name
                   event_handler=sync_ip,  # Set Handler Method
                   event_object=dict(informativeData="hello"),  # Set Initial EventData
                   event_invoker=lambda x: dict(trigger=True))
 
-    event_handler.registerEvent(event)
+    crawl_event = Event(event_name="crawl_event",  # Event Name
+                  event_handler=lambda x,y: asyncio.run(crawl_next()),  # Set Handler Method
+                  event_object=dict(informativeData="hello"),  # Set Initial EventData
+                  event_invoker=lambda x: dict(trigger=True))
+
+    event_handler.registerEvent(sync_event)
+    event_handler.registerEvent(crawl_event)
 
 app_initializer = AppInitializer()
 app_initializer.run()

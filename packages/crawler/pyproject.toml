@@ -5,8 +5,11 @@ description = ""
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "cndi>=2.4.9",
     "alembic>=1.16.4",
     "crawl4ai>=0.7.0",
     "fastapi>=0.116.0",
     "sqlmodel>=0.0.24",
 ]
+[tool.uv.sources]
+cndi = { git = "https://github.com/mayank31313/python-dependency-injection.git" }
