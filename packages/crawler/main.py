@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(
-    title="Crawl4AI",
+    title="crawler",
     version="0.1.1",
     license_info={
         "name": "Apache 2.0",
